@@ -4,62 +4,109 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>광운인공지능고 급식</title>
+    <meta name="description" content="광운인공지능고등학교 급식 정보, 알레르기 설정, 별점 리뷰 서비스">
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="app">
-        <!-- Top date navigation -->
-        <section class="section date-nav-section">
+    <div class="app" id="app">
+
+        <!-- ── 상단: 날짜 네비게이션 ── -->
+        <section class="section date-nav-section" id="weekend-banner-wrap">
+            <!-- 주말 배너 (평일에는 hidden) -->
+            <div class="weekend-banner" id="weekend-banner" style="display:none;">
+                📭 주말에는 학교가 닫아 급식 정보가 없습니다.
+            </div>
+
             <div class="date-nav">
-                <button class="nav-btn" id="prev-day">◀</button>
-                <span class="date-label" id="date-label"></span>
-                <button class="nav-btn" id="next-day">▶</button>
-                <button class="calendar-icon" id="open-calendar">📅</button>
+                <button class="nav-btn" id="prev-day" aria-label="이전 날">◀</button>
+                <div class="date-center">
+                    <span class="date-label" id="date-label"></span>
+                    <button class="calendar-icon" id="open-calendar" aria-label="달력 열기">📅</button>
+                </div>
+                <button class="nav-btn" id="next-day" aria-label="다음 날">▶</button>
             </div>
             <div class="lunch-status" id="lunch-status"></div>
         </section>
 
-        <!-- Meal card -->
-        <section class="section meal-section">
-            <div class="card-header">
-                <h2 class="meal-title">오늘의 급식</h2>
-                <span class="cal-badge" id="cal-badge"></span>
-            </div>
-            <div class="meal-list" id="meal-list">
-                <div class="loader">불러오는 중...</div>
-            </div>
-        </section>
+        <!-- ── 탭 메뉴 ── -->
+        <div class="tab-bar">
+            <button class="tab-btn active" id="tab-meal" data-tab="meal">🍱 급식 정보</button>
+            <button class="tab-btn" id="tab-review" data-tab="review">⭐ 리뷰 &amp; 별점</button>
+        </div>
 
-        <!-- Rating section -->
-        <section class="section rating-section" id="rating-section" style="display:none;">
-            <div class="stars" id="stars">
-                <span class="star" data-value="1">★</span>
-                <span class="star" data-value="2">★</span>
-                <span class="star" data-value="3">★</span>
-                <span class="star" data-value="4">★</span>
-                <span class="star" data-value="5">★</span>
-            </div>
-            <div class="rating-msg" id="rating-msg"></div>
-        </section>
+        <!-- ══════════ 급식 정보 탭 ══════════ -->
+        <div id="page-meal" class="tab-page">
+            <section class="section meal-section">
+                <div class="card-header">
+                    <h2 class="meal-title">오늘의 급식</h2>
+                    <span class="cal-badge" id="cal-badge"></span>
+                </div>
+                <div class="meal-list" id="meal-list">
+                    <div class="loader">불러오는 중...</div>
+                </div>
+            </section>
 
-        <!-- Allergy section (toggle) -->
-        <section class="section allergy-section">
-            <div class="section-header">
-                <h2>알레르기 설정 ⚠️</h2>
-                <button class="toggle-btn" id="allergy-toggle">펼치기</button>
-            </div>
-            <p class="allergy-hint" id="allergy-hint" style="display:none;">해당하는 항목을 선택하면 급식 메뉴에 표시됩니다.</p>
-            <div class="allergy-chips" id="allergy-chips" style="display:none;"></div>
-        </section>
-    </div>
+            <!-- 알레르기 설정 -->
+            <section class="section allergy-section">
+                <div class="section-header">
+                    <h2>알레르기 설정 ⚠️</h2>
+                    <button class="toggle-btn" id="allergy-toggle">펼치기</button>
+                </div>
+                <p class="allergy-hint" id="allergy-hint" style="display:none;">해당하는 항목을 선택하면 급식 메뉴에 표시됩니다.</p>
+                <div class="allergy-chips" id="allergy-chips" style="display:none;"></div>
+            </section>
+        </div>
 
-    <!-- Bottom sheet calendar -->
+        <!-- ══════════ 리뷰 & 별점 탭 ══════════ -->
+        <div id="page-review" class="tab-page" style="display:none;">
+            <section class="section review-section">
+                <h2 class="review-page-title">오늘 급식 어땠나요?</h2>
+                <p class="review-date-sub" id="review-date-sub"></p>
+
+                <!-- 별점 -->
+                <div class="stars" id="stars">
+                    <span class="star" data-value="1" id="star-1">★</span>
+                    <span class="star" data-value="2" id="star-2">★</span>
+                    <span class="star" data-value="3" id="star-3">★</span>
+                    <span class="star" data-value="4" id="star-4">★</span>
+                    <span class="star" data-value="5" id="star-5">★</span>
+                </div>
+                <div class="rating-msg" id="rating-msg">별점을 눌러 주세요</div>
+
+                <!-- 텍스트 리뷰 -->
+                <div class="review-input-wrap">
+                    <textarea
+                        id="review-text"
+                        class="review-textarea"
+                        placeholder="오늘 급식에 대한 의견을 자유롭게 작성해 보세요..."
+                        maxlength="300"
+                        rows="4"
+                    ></textarea>
+                    <div class="review-char-count"><span id="char-count">0</span>/300</div>
+                    <button class="save-btn" id="save-review">저장하기 💾</button>
+                </div>
+
+                <!-- 저장된 리뷰 표시 -->
+                <div class="saved-review" id="saved-review" style="display:none;">
+                    <div class="saved-label">📝 저장된 리뷰</div>
+                    <div class="saved-text" id="saved-text"></div>
+                </div>
+            </section>
+        </div>
+
+    </div><!-- /.app -->
+
+    <!-- ── Bottom sheet calendar ── -->
+    <div class="sheet-overlay" id="sheet-overlay"></div>
     <div class="bottom-sheet" id="bottom-sheet">
+        <div class="sheet-handle"></div>
         <div class="sheet-header">
+            <button class="sheet-nav-btn" id="cal-prev-month">‹</button>
             <span class="sheet-month" id="sheet-month-label"></span>
+            <button class="sheet-nav-btn" id="cal-next-month">›</button>
             <button class="sheet-close" id="sheet-close">✕</button>
         </div>
         <div class="calendar-weekdays">
