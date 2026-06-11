@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>광운인공지능고 급식</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app">
+        <!-- Top date navigation -->
+        <section class="section date-nav-section">
+            <div class="date-nav">
+                <button class="nav-btn" id="prev-day">◀</button>
+                <span class="date-label" id="date-label"></span>
+                <button class="nav-btn" id="next-day">▶</button>
+                <button class="calendar-icon" id="open-calendar">📅</button>
+            </div>
+            <div class="lunch-status" id="lunch-status"></div>
+        </section>
+
+        <!-- Meal card -->
+        <section class="section meal-section">
+            <div class="card-header">
+                <h2 class="meal-title">오늘의 급식</h2>
+                <span class="cal-badge" id="cal-badge"></span>
+            </div>
+            <div class="meal-list" id="meal-list">
+                <div class="loader">불러오는 중...</div>
+            </div>
+        </section>
+
+        <!-- Rating section -->
+        <section class="section rating-section" id="rating-section" style="display:none;">
+            <div class="stars" id="stars">
+                <span class="star" data-value="1">★</span>
+                <span class="star" data-value="2">★</span>
+                <span class="star" data-value="3">★</span>
+                <span class="star" data-value="4">★</span>
+                <span class="star" data-value="5">★</span>
+            </div>
+            <div class="rating-msg" id="rating-msg"></div>
+        </section>
+
+        <!-- Allergy section (toggle) -->
+        <section class="section allergy-section">
+            <div class="section-header">
+                <h2>알레르기 설정 ⚠️</h2>
+                <button class="toggle-btn" id="allergy-toggle">펼치기</button>
+            </div>
+            <p class="allergy-hint" id="allergy-hint" style="display:none;">해당하는 항목을 선택하면 급식 메뉴에 표시됩니다.</p>
+            <div class="allergy-chips" id="allergy-chips" style="display:none;"></div>
+        </section>
+    </div>
+
+    <!-- Bottom sheet calendar -->
+    <div class="bottom-sheet" id="bottom-sheet">
+        <div class="sheet-header">
+            <span class="sheet-month" id="sheet-month-label"></span>
+            <button class="sheet-close" id="sheet-close">✕</button>
+        </div>
+        <div class="calendar-weekdays">
+            <span class="wd sun">일</span>
+            <span class="wd">월</span>
+            <span class="wd">화</span>
+            <span class="wd">수</span>
+            <span class="wd">목</span>
+            <span class="wd">금</span>
+            <span class="wd sat">토</span>
+        </div>
+        <div class="calendar-grid" id="bottom-calendar-grid"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
