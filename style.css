@@ -1,0 +1,63 @@
+:root {
+    --primary: #FF8A00;
+    --bg: #FFF9ED;
+    --card: #FFFFFF;
+    --text: #1A1A2E;
+    --text-sub: #6B7280;
+    --border: #E5E7EB;
+    --star-active: #FBBF24;
+    --star-inactive: #D1D5DB;
+    --radius: 16px;
+    --shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+* { box-sizing:border-box; margin:0; padding:0; }
+
+body { font-family:'Noto Sans KR',sans-serif; background:var(--bg); color:var(--text); display:flex; justify-content:center; min-height:100vh; -webkit-font-smoothing:antialiased; }
+
+.app { width:100%; max-width:420px; padding:12px; display:flex; flex-direction:column; gap:12px; }
+
+.section { background:var(--card); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); }
+
+.date-nav { display:flex; align-items:center; gap:8px; justify-content:center; }
+.nav-btn { width:36px; height:36px; border:none; background:var(--bg); border-radius:8px; font-size:18px; cursor:pointer; }
+.date-label { font-weight:600; font-size:15px; }
+.calendar-icon { background:none; border:none; font-size:20px; cursor:pointer; }
+.lunch-status { font-size:13px; padding:4px 10px; border-radius:20px; margin-top:6px; text-align:center; }
+.lunch-status.active { background:#E6F4EA; color:#10B981; }
+.lunch-status.inactive { background:#F3F4F6; color:#6B7280; }
+
+/* Meal card */
+.meal-section .card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.meal-title { font-size:16px; font-weight:700; }
+.meal-list { display:flex; flex-direction:column; gap:6px; min-height:80px; }
+.meal-item { padding:8px 12px; background:var(--bg); border-radius:8px; font-size:15px; }
+.meal-item.allergy { background:#FEF2F2; color:#EF4444; font-weight:600; border-left:4px solid #EF4444; }
+.loader, .empty { display:flex; justify-content:center; align-items:center; color:var(--text-sub); min-height:80px; }
+
+/* Rating */
+.stars { display:flex; justify-content:center; gap:6px; margin-bottom:6px; }
+.star { font-size:28px; color:var(--star-inactive); cursor:pointer; transition:transform 0.1s; }
+.star:hover { transform:scale(1.12); }
+.star.active { color:var(--star-active); }
+.rating-msg { text-align:center; font-size:14px; color:var(--text-sub); min-height:20px; }
+
+/* Allergy */
+.toggle-btn { background:none; border:none; color:var(--primary); font-weight:600; cursor:pointer; }
+.allergy-hint { font-size:13px; color:var(--text-sub); margin-bottom:8px; }
+.allergy-chips { display:flex; flex-wrap:wrap; gap:6px; }
+.chip { padding:5px 11px; border-radius:20px; background:var(--bg); border:1px solid var(--border); font-size:13px; cursor:pointer; }
+.chip.on { background:#EF4444; border-color:#EF4444; color:#fff; }
+
+/* Bottom sheet */
+.bottom-sheet { position:fixed; left:0; right:0; bottom:-100%; background:var(--card); border-top-left-radius:var(--radius); border-top-right-radius:var(--radius); box-shadow:0 -2px 12px rgba(0,0,0,0.12); transition:bottom 0.3s ease-out; max-height:70vh; overflow-y:auto; }
+.bottom-sheet.open { bottom:0; }
+.sheet-header { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid var(--border); }
+.sheet-close { background:none; border:none; font-size:20px; cursor:pointer; }
+.calendar-weekdays { display:grid; grid-template-columns:repeat(7,1fr); text-align:center; font-size:13px; color:var(--text-sub); margin-top:8px; }
+.calendar-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; padding:8px 16px; }
+.cal-day { aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-size:14px; border-radius:6px; cursor:pointer; }
+.cal-day.other { color:#CBD5E1; }
+.cal-day.today { background:var(--primary); color:#fff; font-weight:600; }
+.cal-day.selected { border:2px solid var(--primary); }
+.cal-day.has-rating::after { content:'★'; font-size:10px; position:absolute; bottom:2px; right:2px; color:var(--star-active); }
