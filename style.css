@@ -1,25 +1,26 @@
 :root {
     --primary: #FF8A00;
+    --primary-gradient: linear-gradient(135deg, #FF9900 0%, #FF5E00 100%);
     --primary-light: #FFF3E0;
-    --bg: #F7F8FA;
-    --card: #FFFFFF;
+    --bg-gradient: linear-gradient(135deg, #FFF8F0 0%, #F0F4F8 100%);
+    --card: rgba(255, 255, 255, 0.85);
     --text: #1A1A2E;
     --text-sub: #6B7280;
-    --border: #E5E7EB;
+    --border: rgba(229, 231, 235, 0.7);
     --star-active: #FBBF24;
     --star-inactive: #D1D5DB;
-    --radius: 16px;
-    --shadow: 0 2px 8px rgba(0,0,0,0.07);
-    --weekend-bg: #FFF1F1;
+    --radius: 20px;
+    --shadow: 0 8px 32px rgba(0,0,0,0.06);
+    --weekend-bg: rgba(255, 241, 241, 0.9);
     --weekend-text: #DC2626;
-    --weekend-border: #FECACA;
+    --weekend-border: rgba(254, 202, 202, 0.8);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
     font-family: 'Noto Sans KR', sans-serif;
-    background: var(--bg);
+    background: var(--bg-gradient);
     color: var(--text);
     display: flex;
     justify-content: center;
@@ -38,8 +39,11 @@ body {
 
 .section {
     background: var(--card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: var(--radius);
-    padding: 16px;
+    padding: 18px 16px;
     box-shadow: var(--shadow);
 }
 
@@ -154,10 +158,10 @@ body {
     transition: all 0.2s;
 }
 .tab-btn.active {
-    background: var(--primary);
+    background: var(--primary-gradient);
     color: #fff;
     font-weight: 700;
-    box-shadow: 0 2px 6px rgba(255,138,0,0.3);
+    box-shadow: 0 4px 14px rgba(255,110,0,0.3);
 }
 
 /* ── Tab Pages ── */
@@ -300,17 +304,17 @@ body {
 
 .save-btn {
     width: 100%;
-    padding: 12px;
-    background: var(--primary);
+    padding: 14px;
+    background: var(--primary-gradient);
     color: #fff;
     border: none;
-    border-radius: 12px;
+    border-radius: 14px;
     font-family: 'Noto Sans KR', sans-serif;
     font-size: 15px;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 3px 8px rgba(255,138,0,0.3);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(255,110,0,0.25);
 }
 .save-btn:hover { background: #E07800; transform: translateY(-1px); }
 .save-btn:active { transform: translateY(0); }
@@ -364,13 +368,16 @@ body {
     position: fixed;
     left: 0; right: 0;
     bottom: -100%;
-    background: var(--card);
-    border-top-left-radius: 28px;
-    border-top-right-radius: 28px;
-    box-shadow: 0 -8px 32px rgba(0,0,0,0.15);
-    transition: bottom 0.36s cubic-bezier(0.32, 0.72, 0, 1);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(255, 255, 255, 0.8);
+    border-top-left-radius: 32px;
+    border-top-right-radius: 32px;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.12);
+    transition: bottom 0.4s cubic-bezier(0.32, 0.72, 0, 1);
     z-index: 101;
-    max-height: 80vh;
+    max-height: 85vh;
     overflow-y: auto;
     padding-bottom: env(safe-area-inset-bottom, 24px);
 }
