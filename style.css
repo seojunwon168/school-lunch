@@ -360,7 +360,52 @@ body {
     word-break: break-word;
 }
 
-/* ── Calendar Tab ── */
+/* ── Bottom Sheet Calendar ── */
+.sheet-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 100;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    animation: overlayIn 0.25s ease;
+}
+.sheet-overlay.active { display: block; }
+
+@keyframes overlayIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.bottom-sheet {
+    position: fixed;
+    left: 0; right: 0;
+    bottom: -100%;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(255, 255, 255, 0.8);
+    border-top-left-radius: 32px;
+    border-top-right-radius: 32px;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.12);
+    transition: bottom 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+    z-index: 101;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding-bottom: env(safe-area-inset-bottom, 24px);
+}
+.bottom-sheet.open { bottom: 0; }
+
+/* Drag handle pill */
+.sheet-handle {
+    width: 44px;
+    height: 5px;
+    background: #D1D5DB;
+    border-radius: 3px;
+    margin: 12px auto 0;
+}
+
 /* Header row: ‹  2026년 6월  › */
 .sheet-header {
     display: flex;
