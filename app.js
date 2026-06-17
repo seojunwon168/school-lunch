@@ -319,30 +319,6 @@ function renderMeal(raw) {
 }
 
 /* ══════════════════════════════════════
-
-/* ── Main Image ── */
-function setMainImage(raw) {
-  // Extract first line (main dish) from raw menu string
-  const firstLine = raw.split('<br/>')[0].trim();
-  const cleanName = firstLine.replace(/^\*+/, '').trim();
-  // Keyword list for common main dishes (Korean)
-  const keywords = ['돈까스','스파게티','김밥','떡볶이','라면','비빔밥','샌드위치','피자','햄버거','냉면'];
-  let matched = '';
-  for (const kw of keywords) {
-    if (cleanName.includes(kw)) { matched = kw; break; }
-  }
-  // Use matched keyword if any, otherwise fallback to cleaned name
-  const query = encodeURIComponent(matched || cleanName);
-  const $img = document.getElementById('main-image');
-  const unsplashUrl = `https://source.unsplash.com/featured/400x300?${query}`;
-  const fallbackUrl = `https://picsum.photos/seed/${query}/400/300`;
-  $img.innerHTML = `<img src="${unsplashUrl}" alt="${matched || cleanName}" onerror="this.onerror=null;this.src='${fallbackUrl}'"/>`;
-  $img.classList.remove('hidden');
-}
-
-
-
-
    Rating & Review
 ══════════════════════════════════════ */
 function setRating(v) {
