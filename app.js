@@ -23,14 +23,13 @@ let myReviews     = JSON.parse(localStorage.getItem('mealReviews') || '{}');
 const $app          = document.getElementById('app');
 const $dateLabel    = document.getElementById('date-label');
 const $lunchStatus  = document.getElementById('lunch-status');
+const $lunchCountdown = document.getElementById('lunch-countdown');
 const $mealList     = document.getElementById('meal-list');
 const $calBadge     = document.getElementById('cal-badge');
 const $chips        = document.getElementById('allergy-chips');
 const $allergyHint  = document.getElementById('allergy-hint');
 const $allergyToggle= document.getElementById('allergy-toggle');
 const $weekendBanner= document.getElementById('weekend-banner');
-const $bottomSheet  = document.getElementById('bottom-sheet');
-const $sheetOverlay = document.getElementById('sheet-overlay');
 const $sheetMonth   = document.getElementById('sheet-month-label');
 const $sheetGrid    = document.getElementById('bottom-calendar-grid');
 // Review tab
@@ -50,8 +49,7 @@ const $reviewDateSub= document.getElementById('review-date-sub');
     // Date navigation
     document.getElementById('prev-day').onclick    = () => changeDay(-1);
     document.getElementById('next-day').onclick    = () => changeDay(1);
-    document.getElementById('open-calendar').onclick = openSheet;
-    document.getElementById('sheet-close').onclick  = closeSheet;
+    document.getElementById('open-calendar').onclick = () => switchTab('calendar');
     document.getElementById('cal-prev-month').onclick = () => { viewMonth--; if(viewMonth<0){viewMonth=11;viewYear--;} renderBottomCalendar(); };
     document.getElementById('cal-next-month').onclick = () => { viewMonth++; if(viewMonth>11){viewMonth=0;viewYear++;} renderBottomCalendar(); };
     document.getElementById('go-today').onclick = () => {
@@ -59,9 +57,8 @@ const $reviewDateSub= document.getElementById('review-date-sub');
         renderTopDate();
         loadMeal();
         renderReviewPage();
-        closeSheet();
+        switchTab('meal');
     };
-    $sheetOverlay.onclick = closeSheet;
 
     // Tab switching
     document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -98,7 +95,7 @@ const $reviewDateSub= document.getElementById('review-date-sub');
     loadMeal();
     renderReviewPage();
     updateLunchStatus();
-    setInterval(updateLunchStatus, 30000);
+    setInterval(updateLunchStatus, 1000);
 })();
 
 /* ══════════════════════════════════════
@@ -148,13 +145,36 @@ function renderTopDate() {
 ══════════════════════════════════════ */
 function updateLunchStatus() {
     const now  = new Date();
-    const mins = now.getHours() * 60 + now.getMinutes();
-    // 점심 12:20(740) ~ 13:10(790)
-    if (mins >= 740 && mins <= 790) {
-        $lunchStatus.textContent = '🍽️ 현재 점심시간!';
+    const h = now.getHours();
+    const m = now.getMinutes();
+    const s = now.getSeconds();
+    const secs = h * 3600 + m * 60 + s;
+
+    // 점심 12:20 ~ 13:10
+    const startSecs = 12 * 3600 + 20 * 60;
+    const endSecs   = 13 * 3600 + 10 * 60;
+
+    if (secs < startSecs) {
+        const diff = startSecs - secs;
+        const diffH = Math.floor(diff / 3600);
+        const diffM = Math.floor((diff % 3600) / 60);
+        const diffS = diff % 60;
+        let timeStr = '';
+        if (diffH > 0) timeStr += diffH + '시간 ';
+        timeStr += diffM + '분 ' + diffS + '초';
+        $lunchCountdown.textContent = `점심시간까지 ${timeStr} 남았습니다`;
+        $lunchStatus.textContent = '아직 점심시간이 아닙니다';
+        $lunchStatus.className   = 'lunch-status inactive';
+    } else if (secs >= startSecs && secs <= endSecs) {
+        const diff = endSecs - secs;
+        const diffM = Math.floor(diff / 60);
+        const diffS = diff % 60;
+        $lunchCountdown.textContent = `점심시간 끝까지 ${diffM}분 ${diffS}초 남았습니다`;
+        $lunchStatus.textContent = '점심시간입니다!';
         $lunchStatus.className   = 'lunch-status active';
     } else {
-        $lunchStatus.textContent = '점심 12:20 ~ 13:10';
+        $lunchCountdown.textContent = '';
+        $lunchStatus.textContent = '아직 점심시간이 아닙니다';
         $lunchStatus.className   = 'lunch-status inactive';
     }
 }
@@ -166,6 +186,13 @@ function switchTab(tab) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
     document.getElementById('page-meal').style.display   = tab === 'meal'   ? 'flex' : 'none';
     document.getElementById('page-review').style.display = tab === 'review' ? 'flex' : 'none';
+    document.getElementById('page-calendar').style.display = tab === 'calendar' ? 'flex' : 'none';
+    
+    if (tab === 'calendar') {
+        viewYear  = selectedDate.getFullYear();
+        viewMonth = selectedDate.getMonth();
+        renderBottomCalendar();
+    }
 }
 
 /* ══════════════════════════════════════
@@ -316,20 +343,8 @@ function toggleAllergy(id, el) {
 }
 
 /* ══════════════════════════════════════
-   Bottom Sheet Calendar
+   Calendar Tab
 ══════════════════════════════════════ */
-function openSheet() {
-    viewYear  = selectedDate.getFullYear();
-    viewMonth = selectedDate.getMonth();
-    $bottomSheet.classList.add('open');
-    $sheetOverlay.classList.add('active');
-    renderBottomCalendar();
-}
-function closeSheet() {
-    $bottomSheet.classList.remove('open');
-    $sheetOverlay.classList.remove('active');
-}
-
 function renderBottomCalendar() {
     $sheetMonth.textContent = `${viewYear}년 ${viewMonth + 1}월`;
     $sheetGrid.innerHTML = '';
@@ -359,7 +374,7 @@ function renderBottomCalendar() {
             renderTopDate();
             loadMeal();
             renderReviewPage();
-            closeSheet();
+            switchTab('meal');
         };
         $sheetGrid.appendChild(el);
     }
