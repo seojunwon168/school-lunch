@@ -222,6 +222,7 @@ async function loadMeal() {
         $weekendBanner.style.display = 'block';
         $weekendBanner.textContent = '📭 학교를 안 나오는 날 (주말)';
         $app.classList.add('weekend');
+        document.getElementById('main-image').classList.add('hidden');
         hideSkeleton();
         return;
     }
@@ -269,6 +270,7 @@ async function loadMeal() {
                     <span class="reason">(${offDayReason})</span>
                 </div>
             `;
+            document.getElementById('main-image').classList.add('hidden');
             hideSkeleton();
             $weekendBanner.style.display = 'block';
             $weekendBanner.textContent = `📭 학교를 안 나오는 날 (${offDayReason})`;
@@ -284,6 +286,8 @@ async function loadMeal() {
             $calBadge.textContent = row.CAL_INFO || '';
         } else {
             $mealList.innerHTML = '<div class="empty">급식 정보가 없습니다 😢</div>';
+            document.getElementById('main-image').classList.add('hidden');
+            hideSkeleton();
         }
     } catch(e) {
         console.error(e);
@@ -511,4 +515,29 @@ function makeCalDay(num, other, date) {
     div.className = 'cal-day' + (other ? ' other' : '');
     div.textContent = num;
     return div;
+}
+
+/* ══════════════════════════════════════
+   Skeleton UI
+══════════════════════════════════════ */
+function showSkeleton() {
+    const $skeletonContainer = document.getElementById('skeleton-meal');
+    const $mealList = document.getElementById('meal-list');
+    $mealList.classList.add('hidden');
+    $skeletonContainer.classList.remove('hidden');
+    $skeletonContainer.innerHTML = '';
+    
+    // Create 3 skeleton items
+    for (let i = 0; i < 3; i++) {
+        const item = document.createElement('div');
+        item.className = 'skeleton-item';
+        $skeletonContainer.appendChild(item);
+    }
+}
+
+function hideSkeleton() {
+    const $skeletonContainer = document.getElementById('skeleton-meal');
+    const $mealList = document.getElementById('meal-list');
+    $skeletonContainer.classList.add('hidden');
+    $mealList.classList.remove('hidden');
 }
