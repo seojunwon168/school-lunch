@@ -33,6 +33,7 @@ const $calendarPage = document.getElementById('page-calendar');
 const $calBackBtn   = document.getElementById('cal-back-btn');
 const $sheetMonth   = document.getElementById('sheet-month-label');
 const $sheetGrid    = document.getElementById('bottom-calendar-grid');
+
 // Review tab
 const $stars        = document.querySelectorAll('.star');
 const $ratingMsg    = document.getElementById('rating-msg');
@@ -52,8 +53,23 @@ const $reviewDateSub= document.getElementById('review-date-sub');
     document.getElementById('next-day').onclick    = () => changeDay(1);
     document.getElementById('open-calendar').onclick = showCalendarPage;
     $calBackBtn.onclick                              = hideCalendarPage;
-    document.getElementById('cal-prev-month').onclick = () => { viewMonth--; if(viewMonth<0){viewMonth=11;viewYear--;} renderBottomCalendar(); };
-    document.getElementById('cal-next-month').onclick = () => { viewMonth++; if(viewMonth>11){viewMonth=0;viewYear++;} renderBottomCalendar(); };
+    
+    document.getElementById('cal-prev-month').onclick = () => { 
+        viewMonth--; 
+        if(viewMonth < 0) {
+            viewMonth = 11;
+            viewYear--;
+        } 
+        renderBottomCalendar(); 
+    };
+    document.getElementById('cal-next-month').onclick = () => { 
+        viewMonth++; 
+        if(viewMonth > 11) {
+            viewMonth = 0;
+            viewYear++;
+        } 
+        renderBottomCalendar(); 
+    };
 
     // Tab switching
     document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -134,6 +150,7 @@ function isDateAllowed(date) {
 function getNextLunchTime(now) {
     const target = new Date(now);
     target.setHours(12, 20, 0, 0);
+    // target 시간이 이미 지났거나 주말인 경우, 다음 날로 미룸
     while (target <= now || target.getDay() === 0 || target.getDay() === 6) {
         target.setDate(target.getDate() + 1);
     }
@@ -173,12 +190,12 @@ function renderTopDate() {
     $app.classList.toggle('weekend', weekend);
 }
 
-/* ── Lunch Status ── */
+/* ── Lunch Status (남은 시간 카운트다운) ── */
 function updateLunchStatus() {
     const now  = new Date();
     const mins = now.getHours() * 60 + now.getMinutes();
     
-    // Lunch time: 12:20 (740 mins) ~ 13:10 (790 mins) on weekdays
+    // 평일 점심시간: 12:20 (740 mins) ~ 13:10 (790 mins)
     if (!isWeekend(now) && mins >= 740 && mins <= 790) {
         $lunchStatus.textContent = '🍽️ 현재 점심시간!';
         $lunchStatus.className   = 'lunch-status active';
@@ -240,7 +257,7 @@ async function loadMeal() {
         return;
     }
 
-            showSkeleton();
+    showSkeleton();
     $calBadge.textContent = '';
     $weekendBanner.style.display = 'none';
     $app.classList.remove('weekend');
@@ -277,7 +294,7 @@ async function loadMeal() {
         }
 
         if (isSchoolOffDay) {
-                        $mealList.innerHTML = `
+            $mealList.innerHTML = `
                 <div class="empty">
                     학교를 안 나오는 날 📭
                     <span class="reason">(${offDayReason})</span>
@@ -293,7 +310,7 @@ async function loadMeal() {
 
         if (mealData && mealData.mealServiceDietInfo) {
             const row = mealData.mealServiceDietInfo[1].row[0];
-                        renderMeal(row.DDISH_NM);
+            renderMeal(row.DDISH_NM);
             setMainImage(row.DDISH_NM);
             hideSkeleton();
             $calBadge.textContent = row.CAL_INFO || '';
@@ -304,8 +321,8 @@ async function loadMeal() {
         }
     } catch(e) {
         console.error(e);
-                    $mealList.innerHTML = '<div class="empty">데이터 로드 실패</div>';
-            hideSkeleton();
+        $mealList.innerHTML = '<div class="empty">데이터 로드 실패</div>';
+        hideSkeleton();
     }
 }
 
@@ -331,204 +348,28 @@ function renderMeal(raw) {
     });
 }
 
-/* ══════════════════════════════════════
-   Rating & Review
-══════════════════════════════════════ */
-function setRating(v) {
-    const key      = formatYMD(selectedDate);
-    myRatings[key] = v;
-    localStorage.setItem('mealRatings', JSON.stringify(myRatings));
-    renderStars();
-    renderBottomCalendar();
-}
-
-function renderStars() {
-    const key     = formatYMD(selectedDate);
-    const val     = myRatings[key] || 0;
-    const weekend = isWeekend(selectedDate);
-    $stars.forEach(st => {
-        st.classList.toggle('active', parseInt(st.dataset.value) <= val);
-        st.classList.toggle('disabled', weekend);
-    });
-    $ratingMsg.textContent = weekend
-        ? '주말에는 리뷰를 작성할 수 없습니다.'
-        : (RATING_MSG[val] || '별점을 눌러 주세요');
-}
-
-function saveReview() {
-    if (isWeekend(selectedDate)) return;
-    const key         = formatYMD(selectedDate);
-    const text        = $reviewText.value.trim();
-    myReviews[key]    = text;
-    localStorage.setItem('mealReviews', JSON.stringify(myReviews));
-    renderSavedReview();
-    // brief visual feedback
-    $saveBtn.textContent = '저장됐어요 ✅';
-    setTimeout(() => { $saveBtn.textContent = '저장하기 💾'; }, 1500);
-}
-
-function renderSavedReview() {
-    const key  = formatYMD(selectedDate);
-    const text = myReviews[key] || '';
-    if (text) {
-        $savedReview.style.display = 'block';
-        $savedText.textContent     = text;
-    } else {
-        $savedReview.style.display = 'none';
-    }
-}
-
-function renderReviewPage() {
-    const key     = formatYMD(selectedDate);
-    const weekend = isWeekend(selectedDate);
-
-    // sub date label
-    const dow = DAYS_KO[selectedDate.getDay()];
-    const y   = selectedDate.getFullYear();
-    const m   = String(selectedDate.getMonth() + 1).padStart(2, '0');
-    const d   = String(selectedDate.getDate()).padStart(2, '0');
-    $reviewDateSub.textContent = `${y}. ${m}. ${d} (${dow})`;
-
-    renderStars();
-
-    // load saved review text
-    $reviewText.value      = myReviews[key] || '';
-    $charCount.textContent = $reviewText.value.length;
-
-    // disable inputs on weekend
-    $reviewText.disabled = weekend;
-    $saveBtn.disabled    = weekend;
-
-    renderSavedReview();
-}
-
-/* ══════════════════════════════════════
-   Allergy
-══════════════════════════════════════ */
-function renderAllergy() {
-    $chips.innerHTML = '';
-    ALLERGY_LIST.forEach(a => {
-        const el = document.createElement('div');
-        el.className = 'chip' + (myAllergies.includes(a.id) ? ' on' : '');
-        el.textContent = a.name;
-        el.onclick = () => toggleAllergy(a.id, el);
-        $chips.appendChild(el);
-    });
-}
-function toggleAllergy(id, el) {
-    const idx = myAllergies.indexOf(id);
-    if (idx === -1) { myAllergies.push(id); el.classList.add('on'); }
-    else            { myAllergies.splice(idx, 1); el.classList.remove('on'); }
-    localStorage.setItem('myAllergies', JSON.stringify(myAllergies));
-    loadMeal();
-}
-
-/* ══════════════════════════════════════
-   Calendar Page Navigation & Rendering
-   ══════════════════════════════════════ */
-function showCalendarPage() {
-    // Hide main screen sections
-    document.querySelector('.date-nav-section').style.display = 'none';
-    document.querySelector('.tab-bar').style.display = 'none';
-    document.getElementById('page-meal').style.display = 'none';
-    document.getElementById('page-review').style.display = 'none';
-
-    // Show calendar page
-    $calendarPage.style.display = 'flex';
-
-    viewYear  = selectedDate.getFullYear();
-    viewMonth = selectedDate.getMonth();
-    renderBottomCalendar();
-}
-
-function hideCalendarPage() {
-    // Show main screen sections
-    document.querySelector('.date-nav-section').style.display = 'block';
-    document.querySelector('.tab-bar').style.display = 'flex';
-
-    // Show the active tab page
-    const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
-    switchTab(activeTab);
-
-    // Hide calendar page
-    $calendarPage.style.display = 'none';
-}
-
-function renderBottomCalendar() {
-    $sheetMonth.textContent = `${viewYear}년 ${viewMonth + 1}월`;
-    $sheetGrid.innerHTML = '';
-
-    const first    = new Date(viewYear, viewMonth, 1);
-    const startDow = first.getDay();
-    const lastDay  = new Date(viewYear, viewMonth + 1, 0).getDate();
-    const prevLast = new Date(viewYear, viewMonth, 0).getDate();
-
-    // prev month filler
-    for (let i = startDow - 1; i >= 0; i--) {
-        $sheetGrid.appendChild(makeCalDay(prevLast - i, true, null));
-    }
-    // current month
-    for (let d = 1; d <= lastDay; d++) {
-        const date = new Date(viewYear, viewMonth, d);
-        const key  = formatYMD(date);
-        const el   = makeCalDay(d, false, date);
-        
-        const allowed = isDateAllowed(date);
-        if (!allowed) {
-            el.classList.add('disabled');
-        } else {
-            if (isSameDay(date, today))         el.classList.add('today');
-            if (isSameDay(date, selectedDate))  el.classList.add('selected');
-            if (myRatings[key])                 el.classList.add('has-rating');
-            if (isWeekend(date))                el.classList.add('weekend-day');
-            el.onclick = () => {
-                selectedDate = new Date(viewYear, viewMonth, d);
-                renderTopDate();
-                loadMeal();
-                renderReviewPage();
-                hideCalendarPage();
-            };
-        }
-        $sheetGrid.appendChild(el);
-    }
-    // next month filler
-    const total  = startDow + lastDay;
-    const remain = (7 - total % 7) % 7;
-    for (let i = 1; i <= remain; i++) {
-        $sheetGrid.appendChild(makeCalDay(i, true, null));
-    }
-}
-
-function makeCalDay(num, other, date) {
-    const div = document.createElement('div');
-    div.className = 'cal-day' + (other ? ' other' : '');
-    div.textContent = num;
-    return div;
 /* ── Main Image ── */
 function setMainImage(raw) {
-  // Extract first line (main dish) from raw menu string
-  const firstLine = raw.split('<br/>')[0].trim();
-  const cleanName = firstLine.replace(/^\*+/, '').trim();
-  // Keyword list for common main dishes (Korean)
-  const keywords = ['돈까스','스파게티','김밥','떡볶이','라면','비빔밥','샌드위치','피자','햄버거','냉면'];
-  let matched = '';
-  for (const kw of keywords) {
-    if (cleanName.includes(kw)) { matched = kw; break; }
-  }
-  // Use matched keyword if any, otherwise fallback to cleaned name
-  const query = encodeURIComponent(matched || cleanName);
-  const $img = document.getElementById('main-image');
-  const unsplashUrl = `https://source.unsplash.com/featured/400x300?${query}`;
-  const fallbackUrl = `https://picsum.photos/seed/${query}/400/300`;
-  $img.innerHTML = `<img src="${unsplashUrl}" alt="${matched || cleanName}" onerror="this.onerror=null;this.src='${fallbackUrl}'"/>`;
-  $img.classList.remove('hidden');
+    const firstLine = raw.split('<br/>')[0].trim();
+    const cleanName = firstLine.replace(/^\*+/, '').trim();
+    
+    // 주요 메뉴 키워드
+    const keywords = ['돈까스','스파게티','김밥','떡볶이','라면','비빔밥','샌드위치','피자','햄버거','냉면'];
+    let matched = '';
+    for (const kw of keywords) {
+        if (cleanName.includes(kw)) { matched = kw; break; }
+    }
+    
+    const query = encodeURIComponent(matched || cleanName);
+    const $img = document.getElementById('main-image');
+    const unsplashUrl = `https://source.unsplash.com/featured/400x300?${query}`;
+    const fallbackUrl = `https://picsum.photos/seed/${query}/400/300`;
+    
+    $img.innerHTML = `<img src="${unsplashUrl}" alt="${matched || cleanName}" onerror="this.onerror=null;this.src='${fallbackUrl}'"/>`;
+    $img.classList.remove('hidden');
 }
 
-
-
-
-   Rating & Review
-══════════════════════════════════════ */
+/* ── Rating & Review ── */
 function setRating(v) {
     const key      = formatYMD(selectedDate);
     myRatings[key] = v;
@@ -557,7 +398,7 @@ function saveReview() {
     myReviews[key]    = text;
     localStorage.setItem('mealReviews', JSON.stringify(myReviews));
     renderSavedReview();
-    // brief visual feedback
+    
     $saveBtn.textContent = '저장됐어요 ✅';
     setTimeout(() => { $saveBtn.textContent = '저장하기 💾'; }, 1500);
 }
@@ -577,7 +418,6 @@ function renderReviewPage() {
     const key     = formatYMD(selectedDate);
     const weekend = isWeekend(selectedDate);
 
-    // sub date label
     const dow = DAYS_KO[selectedDate.getDay()];
     const y   = selectedDate.getFullYear();
     const m   = String(selectedDate.getMonth() + 1).padStart(2, '0');
@@ -586,20 +426,16 @@ function renderReviewPage() {
 
     renderStars();
 
-    // load saved review text
     $reviewText.value      = myReviews[key] || '';
     $charCount.textContent = $reviewText.value.length;
 
-    // disable inputs on weekend
     $reviewText.disabled = weekend;
     $saveBtn.disabled    = weekend;
 
     renderSavedReview();
 }
 
-/* ══════════════════════════════════════
-   Allergy
-══════════════════════════════════════ */
+/* ── Allergy ── */
 function renderAllergy() {
     $chips.innerHTML = '';
     ALLERGY_LIST.forEach(a => {
@@ -618,17 +454,15 @@ function toggleAllergy(id, el) {
     loadMeal();
 }
 
-/* ══════════════════════════════════════
-   Calendar Page Navigation & Rendering
-   ══════════════════════════════════════ */
+/* ── Calendar Page (탭 방식) Navigation & Rendering ── */
 function showCalendarPage() {
-    // Hide main screen sections
+    // 메인 화면 섹션 숨김
     document.querySelector('.date-nav-section').style.display = 'none';
     document.querySelector('.tab-bar').style.display = 'none';
     document.getElementById('page-meal').style.display = 'none';
     document.getElementById('page-review').style.display = 'none';
 
-    // Show calendar page
+    // 달력 페이지 표시
     $calendarPage.style.display = 'flex';
 
     viewYear  = selectedDate.getFullYear();
@@ -637,15 +471,15 @@ function showCalendarPage() {
 }
 
 function hideCalendarPage() {
-    // Show main screen sections
+    // 메인 화면 섹션 복원
     document.querySelector('.date-nav-section').style.display = 'block';
     document.querySelector('.tab-bar').style.display = 'flex';
 
-    // Show the active tab page
+    // 현재 활성화된 탭 페이지 표시
     const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
     switchTab(activeTab);
 
-    // Hide calendar page
+    // 달력 페이지 숨김
     $calendarPage.style.display = 'none';
 }
 
@@ -658,11 +492,11 @@ function renderBottomCalendar() {
     const lastDay  = new Date(viewYear, viewMonth + 1, 0).getDate();
     const prevLast = new Date(viewYear, viewMonth, 0).getDate();
 
-    // prev month filler
+    // 이전 달 빈칸 채우기
     for (let i = startDow - 1; i >= 0; i--) {
         $sheetGrid.appendChild(makeCalDay(prevLast - i, true, null));
     }
-    // current month
+    // 현재 달 날짜 채우기
     for (let d = 1; d <= lastDay; d++) {
         const date = new Date(viewYear, viewMonth, d);
         const key  = formatYMD(date);
@@ -686,7 +520,7 @@ function renderBottomCalendar() {
         }
         $sheetGrid.appendChild(el);
     }
-    // next month filler
+    // 다음 달 빈칸 채우기
     const total  = startDow + lastDay;
     const remain = (7 - total % 7) % 7;
     for (let i = 1; i <= remain; i++) {
@@ -701,9 +535,7 @@ function makeCalDay(num, other, date) {
     return div;
 }
 
-/* ══════════════════════════════════════
-   Skeleton UI
-══════════════════════════════════════ */
+/* ── Skeleton UI ── */
 function showSkeleton() {
     const $skeletonContainer = document.getElementById('skeleton-meal');
     const $mealList = document.getElementById('meal-list');
