@@ -41,10 +41,12 @@
         <div id="page-meal" class="tab-page">
             <section class="section meal-section">
                 <div class="card-header">
+                <div id="main-image" class="main-image"></div
                     <h2 class="meal-title">오늘의 급식</h2>
                     <span class="cal-badge" id="cal-badge"></span>
                 </div>
                 <div class="meal-list" id="meal-list">
+                <div id="skeleton-meal" class="skeleton-container hidden"></div>
                     <div class="loader">불러오는 중...</div>
                 </div>
             </section>
@@ -89,7 +91,7 @@
                     <button class="save-btn" id="save-review">저장하기 💾</button>
                 </div>
 
-                <!-- 저장된 리뷰 표시 -->
+            <!-- 저장된 리뷰 표시 -->
                 <div class="saved-review" id="saved-review" style="display:none;">
                     <div class="saved-label">📝 저장된 리뷰</div>
                     <div class="saved-text" id="saved-text"></div>
@@ -97,29 +99,42 @@
             </section>
         </div>
 
-    </div><!-- /.app -->
+        <!-- ══════════ 달력 페이지 ══════════ -->
+        <div id="page-calendar" class="tab-page calendar-page" style="display:none;">
+            <section class="section calendar-section">
+                <div class="calendar-page-header">
+                    <button class="cal-back-btn" id="cal-back-btn" aria-label="뒤로가기">←</button>
+                    <h2 class="calendar-page-title">달력 선택</h2>
+                </div>
+                
+                <div class="calendar-card">
+                    <div class="calendar-nav">
+                        <button class="cal-nav-btn" id="cal-prev-month">‹</button>
+                        <span class="cal-month-label" id="sheet-month-label"></span>
+                        <button class="cal-nav-btn" id="cal-next-month">›</button>
+                    </div>
+                    
+                    <div class="calendar-weekdays">
+                        <span class="wd sun">일</span>
+                        <span class="wd">월</span>
+                        <span class="wd">화</span>
+                        <span class="wd">수</span>
+                        <span class="wd">목</span>
+                        <span class="wd">금</span>
+                        <span class="wd sat">토</span>
+                    </div>
+                    <div class="calendar-grid" id="bottom-calendar-grid"></div>
+                </div>
+                
+                <div class="calendar-legend">
+                    <div class="legend-item"><span class="legend-dot today-dot"></span>오늘</div>
+                    <div class="legend-item"><span class="legend-dot selected-dot"></span>선택</div>
+                    <div class="legend-item"><span class="legend-dot rating-dot">★</span>리뷰</div>
+                </div>
+            </section>
+        </div>
 
-    <!-- ── Bottom sheet calendar ── -->
-    <div class="sheet-overlay" id="sheet-overlay"></div>
-    <div class="bottom-sheet" id="bottom-sheet">
-        <div class="sheet-handle"></div>
-        <div class="sheet-header">
-            <button class="sheet-nav-btn" id="cal-prev-month">‹</button>
-            <span class="sheet-month" id="sheet-month-label"></span>
-            <button class="sheet-nav-btn" id="cal-next-month">›</button>
-            <button class="sheet-close" id="sheet-close">✕</button>
-        </div>
-        <div class="calendar-weekdays">
-            <span class="wd sun">일</span>
-            <span class="wd">월</span>
-            <span class="wd">화</span>
-            <span class="wd">수</span>
-            <span class="wd">목</span>
-            <span class="wd">금</span>
-            <span class="wd sat">토</span>
-        </div>
-        <div class="calendar-grid" id="bottom-calendar-grid"></div>
-    </div>
+    </div><!-- /.app -->
 
     <script src="app.js"></script>
 </body>

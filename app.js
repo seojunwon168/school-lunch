@@ -29,8 +29,8 @@ const $chips        = document.getElementById('allergy-chips');
 const $allergyHint  = document.getElementById('allergy-hint');
 const $allergyToggle= document.getElementById('allergy-toggle');
 const $weekendBanner= document.getElementById('weekend-banner');
-const $bottomSheet  = document.getElementById('bottom-sheet');
-const $sheetOverlay = document.getElementById('sheet-overlay');
+const $calendarPage = document.getElementById('page-calendar');
+const $calBackBtn   = document.getElementById('cal-back-btn');
 const $sheetMonth   = document.getElementById('sheet-month-label');
 const $sheetGrid    = document.getElementById('bottom-calendar-grid');
 // Review tab
@@ -50,11 +50,10 @@ const $reviewDateSub= document.getElementById('review-date-sub');
     // Date navigation
     document.getElementById('prev-day').onclick    = () => changeDay(-1);
     document.getElementById('next-day').onclick    = () => changeDay(1);
-    document.getElementById('open-calendar').onclick = openSheet;
-    document.getElementById('sheet-close').onclick  = closeSheet;
+    document.getElementById('open-calendar').onclick = showCalendarPage;
+    $calBackBtn.onclick                              = hideCalendarPage;
     document.getElementById('cal-prev-month').onclick = () => { viewMonth--; if(viewMonth<0){viewMonth=11;viewYear--;} renderBottomCalendar(); };
     document.getElementById('cal-next-month').onclick = () => { viewMonth++; if(viewMonth>11){viewMonth=0;viewYear++;} renderBottomCalendar(); };
-    $sheetOverlay.onclick = closeSheet;
 
     // Tab switching
     document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -91,7 +90,7 @@ const $reviewDateSub= document.getElementById('review-date-sub');
     loadMeal();
     renderReviewPage();
     updateLunchStatus();
-    setInterval(updateLunchStatus, 30000);
+    setInterval(updateLunchStatus, 1000);
 })();
 
 /* ══════════════════════════════════════
@@ -112,13 +111,41 @@ function isWeekend(d) {
     const dow = d.getDay();
     return dow === 0 || dow === 6; // 일=0, 토=6
 }
+function isDateAllowed(date) {
+    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const curToday = new Date();
+    
+    // First day of current month
+    const firstOfCurrentMonth = new Date(curToday.getFullYear(), curToday.getMonth(), 1);
+    
+    // 2 weeks ago (14 days)
+    const twoWeeksAgo = new Date(curToday.getFullYear(), curToday.getMonth(), curToday.getDate() - 14);
+    
+    // End of current month
+    const lastOfCurrentMonth = new Date(curToday.getFullYear(), curToday.getMonth() + 1, 0);
+    
+    // Min Date: earlier of 1st day of month or 14 days ago
+    const minDate = new Date(Math.min(firstOfCurrentMonth, twoWeeksAgo));
+    const maxDate = lastOfCurrentMonth;
+    
+    return d >= minDate && d <= maxDate;
+}
+function getNextLunchTime(now) {
+    const target = new Date(now);
+    target.setHours(12, 20, 0, 0);
+    while (target <= now || target.getDay() === 0 || target.getDay() === 6) {
+        target.setDate(target.getDate() + 1);
+    }
+    return target;
+}
 
-/* ══════════════════════════════════════
-   Date Navigation
-══════════════════════════════════════ */
+/* ── Date Navigation ── */
 function changeDay(delta) {
-    selectedDate = new Date(selectedDate);
-    selectedDate.setDate(selectedDate.getDate() + delta);
+    const nextDate = new Date(selectedDate);
+    nextDate.setDate(nextDate.getDate() + delta);
+    if (!isDateAllowed(nextDate)) return;
+
+    selectedDate = nextDate;
     renderTopDate();
     loadMeal();
     renderReviewPage();
@@ -131,23 +158,44 @@ function renderTopDate() {
     const d   = String(selectedDate.getDate()).padStart(2, '0');
     $dateLabel.textContent = `${y}. ${m}. ${d} (${dow})`;
 
+    // Disable prev/next buttons if outside allowed range
+    const prevDate = new Date(selectedDate);
+    prevDate.setDate(prevDate.getDate() - 1);
+    document.getElementById('prev-day').disabled = !isDateAllowed(prevDate);
+
+    const nextDate = new Date(selectedDate);
+    nextDate.setDate(nextDate.getDate() + 1);
+    document.getElementById('next-day').disabled = !isDateAllowed(nextDate);
+
     const weekend = isWeekend(selectedDate);
     $weekendBanner.style.display = weekend ? 'block' : 'none';
     $app.classList.toggle('weekend', weekend);
 }
 
-/* ══════════════════════════════════════
-   Lunch Status
-══════════════════════════════════════ */
+/* ── Lunch Status ── */
 function updateLunchStatus() {
     const now  = new Date();
     const mins = now.getHours() * 60 + now.getMinutes();
-    // 점심 12:20(740) ~ 13:10(790)
-    if (mins >= 740 && mins <= 790) {
+    
+    // Lunch time: 12:20 (740 mins) ~ 13:10 (790 mins) on weekdays
+    if (!isWeekend(now) && mins >= 740 && mins <= 790) {
         $lunchStatus.textContent = '🍽️ 현재 점심시간!';
         $lunchStatus.className   = 'lunch-status active';
     } else {
-        $lunchStatus.textContent = '점심 12:20 ~ 13:10';
+        const nextLunch = getNextLunchTime(now);
+        const diffMs = nextLunch - now;
+        const diffSec = Math.floor(diffMs / 1000);
+        const hours = Math.floor(diffSec / 3600);
+        const minutes = Math.floor((diffSec % 3600) / 60);
+        const seconds = diffSec % 60;
+        
+        let countdownText = '';
+        if (hours > 0) {
+            countdownText += `${hours}시간 `;
+        }
+        countdownText += `${minutes}분 ${seconds}초`;
+        
+        $lunchStatus.innerHTML = `점심시간이 아닙니다! <span style="font-weight: 600; color: var(--primary);">⏳ ${countdownText} 남음</span>`;
         $lunchStatus.className   = 'lunch-status inactive';
     }
 }
@@ -167,30 +215,80 @@ function switchTab(tab) {
 async function loadMeal() {
     const ymd = formatYMD(selectedDate);
 
-    // Weekend: skip API call
+    // Weekend Check
     if (isWeekend(selectedDate)) {
-        $mealList.innerHTML = '<div class="empty">📭 주말에는 급식 정보가 없습니다.</div>';
+        $mealList.innerHTML = '<div class="empty">학교를 안 나오는 날 <br><span class="reason">(주말)</span></div>';
         $calBadge.textContent = '';
+        $weekendBanner.style.display = 'block';
+        $weekendBanner.textContent = '📭 학교를 안 나오는 날 (주말)';
+        $app.classList.add('weekend');
+        hideSkeleton();
         return;
     }
 
-    $mealList.innerHTML = '<div class="loader">불러오는 중...</div>';
+            showSkeleton();
     $calBadge.textContent = '';
+    $weekendBanner.style.display = 'none';
+    $app.classList.remove('weekend');
 
     try {
-        const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?Type=json&ATPT_OFCDC_SC_CODE=${ATPT}&SD_SCHUL_CODE=${SCHOOL}&MLSV_YMD=${ymd}`;
-        const res  = await fetch(url);
-        const data = await res.json();
-        if (data.mealServiceDietInfo) {
-            const row = data.mealServiceDietInfo[1].row[0];
-            renderMeal(row.DDISH_NM);
+        const mealUrl = `https://open.neis.go.kr/hub/mealServiceDietInfo?Type=json&ATPT_OFCDC_SC_CODE=${ATPT}&SD_SCHUL_CODE=${SCHOOL}&MLSV_YMD=${ymd}`;
+        const scheduleUrl = `https://open.neis.go.kr/hub/SchoolSchedule?Type=json&ATPT_OFCDC_SC_CODE=${ATPT}&SD_SCHUL_CODE=${SCHOOL}&AA_YMD=${ymd}`;
+        
+        const [mealRes, scheduleRes] = await Promise.all([
+            fetch(mealUrl).catch(() => null),
+            fetch(scheduleUrl).catch(() => null)
+        ]);
+
+        let mealData = null;
+        let scheduleData = null;
+
+        if (mealRes) mealData = await mealRes.json().catch(() => null);
+        if (scheduleRes) scheduleData = await scheduleRes.json().catch(() => null);
+
+        // Check for holiday / off day
+        let isSchoolOffDay = false;
+        let offDayReason = '';
+
+        if (scheduleData && scheduleData.SchoolSchedule) {
+            const rows = scheduleData.SchoolSchedule[1].row;
+            for (const row of rows) {
+                const sbtrNm = row.SBTR_DD_SC_NM || '';
+                if (sbtrNm && sbtrNm !== '해당없음') {
+                    isSchoolOffDay = true;
+                    offDayReason = row.EVENT_NM || sbtrNm;
+                    break;
+                }
+            }
+        }
+
+        if (isSchoolOffDay) {
+                        $mealList.innerHTML = `
+                <div class="empty">
+                    학교를 안 나오는 날 📭
+                    <span class="reason">(${offDayReason})</span>
+                </div>
+            `;
+            hideSkeleton();
+            $weekendBanner.style.display = 'block';
+            $weekendBanner.textContent = `📭 학교를 안 나오는 날 (${offDayReason})`;
+            $app.classList.add('weekend');
+            return;
+        }
+
+        if (mealData && mealData.mealServiceDietInfo) {
+            const row = mealData.mealServiceDietInfo[1].row[0];
+                        renderMeal(row.DDISH_NM);
+            setMainImage(row.DDISH_NM);
+            hideSkeleton();
             $calBadge.textContent = row.CAL_INFO || '';
         } else {
             $mealList.innerHTML = '<div class="empty">급식 정보가 없습니다 😢</div>';
         }
     } catch(e) {
         console.error(e);
-        $mealList.innerHTML = '<div class="empty">데이터 로드 실패</div>';
+                    $mealList.innerHTML = '<div class="empty">데이터 로드 실패</div>';
+            hideSkeleton();
     }
 }
 
@@ -217,6 +315,57 @@ function renderMeal(raw) {
 }
 
 /* ══════════════════════════════════════
+
+/* ── Main Image ── */
+function setMainImage(raw) {
+  // Extract the first dish name (main dish) from the raw menu string
+  const firstLine = raw.split('<br/>')[0].trim();
+  // Remove leading asterisks or numbering and trim whitespace
+  const cleanName = firstLine.replace(/^\*+/, '').trim();
+  // Use the cleaned name as the image query; encode for URL
+  const query = encodeURIComponent(cleanName);
+  console.log('Main image query:', query);
+  const $img = document.getElementById('main-image');
+  const unsplashUrl = `https://source.unsplash.com/featured/400x300?${query}`;
+  const fallbackUrl = `https://picsum.photos/seed/${query}/400/300`;
+  $img.innerHTML = `<img src="${unsplashUrl}" alt="${cleanName}" onerror="this.onerror=null;this.src='${fallbackUrl}'"/>`;
+  $img.classList.remove('hidden');
+}
+
+
+  // Extract the first dish name (main dish) from the raw menu string
+  const firstLine = raw.split('<br/>')[0].trim();
+  // Remove leading asterisks or numbering and trim whitespace
+  const cleanName = firstLine.replace(/^\*+/, '').trim();
+  // Use the cleaned name as the image query; encode for URL
+  console.log('Main image query:', query);
+
+  const $img = document.getElementById('main-image');
+  // Try Unsplash first; if it fails the image will show broken, but we also provide a fallback via Picsum
+  const unsplashUrl = `https://source.unsplash.com/featured/400x300?${query}`;
+  const fallbackUrl = `https://picsum.photos/seed/${query}/400/300`;
+  // Set image element with both sources using onerror fallback
+  $img.innerHTML = `<img src="${unsplashUrl}" alt="${cleanName}" onerror="this.onerror=null;this.src='${fallbackUrl}'"/>`;
+  $img.classList.remove('hidden');
+}
+
+  const first = raw.split('<br/>')[0].trim();
+  const name = first.replace(/^\*+/, '').trim();
+  const keywords = ['돈까스','스파게티','김밥','떡볶이','라면','비빔밥','샌드위치','피자','햄버거','냉면'];
+  let matched = '';
+  for (const kw of keywords) {
+    if (name.includes(kw)) { matched = kw; break; }
+  }
+  const $img = document.getElementById('main-image');
+  if (matched) {
+    $img.innerHTML = `<img src="https://source.unsplash.com/featured/400x300?${encodeURIComponent(matched)}" alt="${matched}"/>`;
+    $img.classList.remove('hidden');
+  } else {
+    $img.innerHTML = '';
+    $img.classList.add('hidden');
+  }
+}
+
    Rating & Review
 ══════════════════════════════════════ */
 function setRating(v) {
@@ -309,18 +458,34 @@ function toggleAllergy(id, el) {
 }
 
 /* ══════════════════════════════════════
-   Bottom Sheet Calendar
-══════════════════════════════════════ */
-function openSheet() {
+   Calendar Page Navigation & Rendering
+   ══════════════════════════════════════ */
+function showCalendarPage() {
+    // Hide main screen sections
+    document.querySelector('.date-nav-section').style.display = 'none';
+    document.querySelector('.tab-bar').style.display = 'none';
+    document.getElementById('page-meal').style.display = 'none';
+    document.getElementById('page-review').style.display = 'none';
+
+    // Show calendar page
+    $calendarPage.style.display = 'flex';
+
     viewYear  = selectedDate.getFullYear();
     viewMonth = selectedDate.getMonth();
-    $bottomSheet.classList.add('open');
-    $sheetOverlay.classList.add('active');
     renderBottomCalendar();
 }
-function closeSheet() {
-    $bottomSheet.classList.remove('open');
-    $sheetOverlay.classList.remove('active');
+
+function hideCalendarPage() {
+    // Show main screen sections
+    document.querySelector('.date-nav-section').style.display = 'block';
+    document.querySelector('.tab-bar').style.display = 'flex';
+
+    // Show the active tab page
+    const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
+    switchTab(activeTab);
+
+    // Hide calendar page
+    $calendarPage.style.display = 'none';
 }
 
 function renderBottomCalendar() {
@@ -341,17 +506,23 @@ function renderBottomCalendar() {
         const date = new Date(viewYear, viewMonth, d);
         const key  = formatYMD(date);
         const el   = makeCalDay(d, false, date);
-        if (isSameDay(date, today))         el.classList.add('today');
-        if (isSameDay(date, selectedDate))  el.classList.add('selected');
-        if (myRatings[key])                 el.classList.add('has-rating');
-        if (isWeekend(date))                el.classList.add('weekend-day');
-        el.onclick = () => {
-            selectedDate = new Date(viewYear, viewMonth, d);
-            renderTopDate();
-            loadMeal();
-            renderReviewPage();
-            closeSheet();
-        };
+        
+        const allowed = isDateAllowed(date);
+        if (!allowed) {
+            el.classList.add('disabled');
+        } else {
+            if (isSameDay(date, today))         el.classList.add('today');
+            if (isSameDay(date, selectedDate))  el.classList.add('selected');
+            if (myRatings[key])                 el.classList.add('has-rating');
+            if (isWeekend(date))                el.classList.add('weekend-day');
+            el.onclick = () => {
+                selectedDate = new Date(viewYear, viewMonth, d);
+                renderTopDate();
+                loadMeal();
+                renderReviewPage();
+                hideCalendarPage();
+            };
+        }
         $sheetGrid.appendChild(el);
     }
     // next month filler
