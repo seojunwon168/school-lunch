@@ -214,11 +214,11 @@ function switchTab(tab) {
     });
     
     if (tab === 'meal') {
-        document.getElementById('page-meal').style.display = 'block';
+        document.getElementById('page-meal').style.display = 'flex';
         document.getElementById('page-review').style.display = 'none';
     } else if (tab === 'review') {
         document.getElementById('page-meal').style.display = 'none';
-        document.getElementById('page-review').style.display = 'block';
+        document.getElementById('page-review').style.display = 'flex';
     }
 }
 
