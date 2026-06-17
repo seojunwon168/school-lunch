@@ -4,49 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>광운인공지능고 급식</title>
-    <meta name="description" content="광운인공지능고등학교 급식 정보, 알레르기 설정, 별점 리뷰 서비스">
-    <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=4">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="app" id="app">
-
-        <!-- ── 상단: 날짜 네비게이션 ── -->
+        <!-- 상단 네비게이션 -->
         <section class="section date-nav-section" id="weekend-banner-wrap">
-            <!-- 주말 배너 (평일에는 hidden) -->
             <div class="weekend-banner" id="weekend-banner" style="display:none;">
                 📭 주말에는 학교가 닫아 급식 정보가 없습니다.
             </div>
 
-            <div class="date-nav">
-                <button class="nav-btn" id="prev-day" aria-label="이전 날">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                </button>
+            <div class="date-nav" style="position: relative;">
+                <button class="nav-btn" id="prev-day">◀</button>
                 <div class="date-center">
                     <span class="date-label" id="date-label"></span>
-                    <button class="calendar-icon" id="open-calendar" aria-label="달력 열기">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                    </button>
+                    <button class="calendar-icon" id="open-calendar">📅</button>
                 </div>
-                <button class="nav-btn" id="next-day" aria-label="다음 날">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                </button>
+                <button class="nav-btn" id="next-day">▶</button>
+
+                <!-- 드롭다운 달력 -->
+                <div class="calendar-dropdown" id="calendar-dropdown" style="display:none;">
+                    <div class="cal-drop-header">
+                        <button class="cal-drop-nav" id="cal-prev-month">◀</button>
+                        <span class="cal-drop-month" id="sheet-month-label"></span>
+                        <button class="cal-drop-nav" id="cal-next-month">▶</button>
+                    </div>
+                    <div class="calendar-weekdays">
+                        <span class="wd sun">일</span><span class="wd">월</span><span class="wd">화</span>
+                        <span class="wd">수</span><span class="wd">목</span><span class="wd">금</span><span class="wd sat">토</span>
+                    </div>
+                    <div class="calendar-grid" id="bottom-calendar-grid"></div>
+                    <button class="go-today-btn" id="go-today">오늘로 이동</button>
+                </div>
             </div>
+
+            <!-- 점심시간 표시 -->
             <div class="lunch-status-container">
                 <div id="lunch-countdown" class="lunch-countdown"></div>
                 <div class="lunch-status" id="lunch-status"></div>
             </div>
         </section>
 
-        <!-- ── 탭 메뉴 ── -->
+        <!-- 탭 메뉴 -->
         <div class="tab-bar">
             <button class="tab-btn active" id="tab-meal" data-tab="meal">🍱 급식</button>
             <button class="tab-btn" id="tab-review" data-tab="review">⭐ 리뷰</button>
         </div>
 
-        <!-- ══════════ 급식 정보 탭 ══════════ -->
+        <!-- 급식 탭 -->
         <div id="page-meal" class="tab-page">
             <section class="section meal-section">
                 <div class="card-header">
@@ -57,8 +63,6 @@
                     <div class="loader">불러오는 중...</div>
                 </div>
             </section>
-
-            <!-- 알레르기 설정 -->
             <section class="section allergy-section">
                 <div class="section-header">
                     <h2>알레르기 설정 ⚠️</h2>
@@ -69,13 +73,11 @@
             </section>
         </div>
 
-        <!-- ══════════ 리뷰 & 별점 탭 ══════════ -->
+        <!-- 리뷰 탭 -->
         <div id="page-review" class="tab-page" style="display:none;">
             <section class="section review-section">
                 <h2 class="review-page-title">오늘 급식 어땠나요?</h2>
                 <p class="review-date-sub" id="review-date-sub"></p>
-
-                <!-- 별점 -->
                 <div class="stars" id="stars">
                     <span class="star" data-value="1" id="star-1">★</span>
                     <span class="star" data-value="2" id="star-2">★</span>
@@ -84,56 +86,22 @@
                     <span class="star" data-value="5" id="star-5">★</span>
                 </div>
                 <div class="rating-msg" id="rating-msg">별점을 눌러 주세요</div>
-
-                <!-- 텍스트 리뷰 -->
                 <div class="review-input-wrap">
-                    <textarea
-                        id="review-text"
-                        class="review-textarea"
-                        placeholder="오늘 급식에 대한 의견을 자유롭게 작성해 보세요..."
-                        maxlength="300"
-                        rows="4"
-                    ></textarea>
+                    <textarea id="review-text" class="review-textarea" placeholder="자유롭게 작성해 보세요..." maxlength="300" rows="4"></textarea>
                     <div class="review-char-count"><span id="char-count">0</span>/300</div>
                     <button class="save-btn" id="save-review">저장하기 💾</button>
                 </div>
-
-                <!-- 저장된 리뷰 표시 -->
                 <div class="saved-review" id="saved-review" style="display:none;">
                     <div class="saved-label">📝 저장된 리뷰</div>
                     <div class="saved-text" id="saved-text"></div>
                 </div>
             </section>
         </div>
-
-    </div><!-- /.app -->
-
-    <!-- ── 달력 바텀 시트 ── -->
-    <div class="sheet-overlay" id="sheet-overlay"></div>
-    <div class="bottom-sheet" id="bottom-sheet">
-        <div class="sheet-handle"></div>
-        <div class="sheet-header">
-            <button class="sheet-nav-btn" id="cal-prev-month" aria-label="이전 달">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-            </button>
-            <span class="sheet-month" id="sheet-month-label"></span>
-            <button class="sheet-nav-btn" id="cal-next-month" aria-label="다음 달">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-            </button>
-        </div>
-        <div class="calendar-weekdays">
-            <span class="wd sun">일</span>
-            <span class="wd">월</span>
-            <span class="wd">화</span>
-            <span class="wd">수</span>
-            <span class="wd">목</span>
-            <span class="wd">금</span>
-            <span class="wd sat">토</span>
-        </div>
-        <div class="calendar-grid" id="bottom-calendar-grid"></div>
-        <button class="go-today-btn" id="go-today">오늘로 이동</button>
     </div>
 
-    <script src="app.js"></script>
+    <!-- 달력 바깥 클릭 감지용 오버레이 -->
+    <div class="dropdown-overlay" id="dropdown-overlay" style="display:none;"></div>
+
+    <script src="app.js?v=4"></script>
 </body>
 </html>
