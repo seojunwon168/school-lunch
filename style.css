@@ -181,6 +181,7 @@ body {
 }
 .main-image.hidden { display: none; }
 
+.card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -218,7 +219,7 @@ body {
 }
 
 /* Utility hidden class */
-.hidden { display: none; }
+.hidden { display: none !important; }
 
 /* ── Skeleton UI ── */
 .skeleton-container {
@@ -242,73 +243,6 @@ body {
     0% { opacity: 1; }
     50% { opacity: .4; }
     100% { opacity: 1; }
-}
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: var(--text-sub);
-    min-height: 80px;
-    font-size: 14px;
-}
-            /* ── Skeleton UI ── */
-            .skeleton-container {
-                display: flex;
-                flex-direction: column;
-                gap: 6px;
-                padding: 8px 0;
-            }
-            .skeleton {
-                background: #e0e0e0;
-                border-radius: 4px;
-            }
-            .skeleton.pulse {
-                animation: pulse 1.5s ease-in-out infinite;
-            }
-            .skeleton-meal-item {
-                height: 1.6rem;
-                margin: 0.4rem 0;
-            }
-            @keyframes pulse {
-                0% { opacity: 1; }
-
-function renderMeal(raw) {
-    $mealList.innerHTML = '';
-    const items = raw.split('<br/>').map(s => s.trim()).filter(Boolean);
-    items.forEach(item => {
-        let clean = item.replace(/^\*+/, '').trim();
-        let name = clean;
-        let nums = [];
-        const m = clean.match(/(.+?)\s*\(([\d.]+)\)\s*$/);
-        if (m) { name = m[1].trim(); nums = m[2].split('.').map(Number).filter(n => !isNaN(n)); }
-        const hit = myAllergies.filter(id => nums.includes(id));
-        const div = document.createElement('div');
-        div.className = 'meal-item' + (hit.length ? ' allergy' : '');
-        if (hit.length) {
-            const names = ALLERGY_LIST.filter(a => hit.includes(a.id)).map(a => a.name).join(', ');
-            div.textContent = `${name} ⚠️ (${names})`;
-        } else {
-            div.textContent = name;
-        }
-        $mealList.appendChild(div);
-    });
-}
-
-// ---------- Skeleton UI Helpers ----------
-function showSkeleton() {
-    const $skeleton = document.getElementById('skeleton-meal');
-    $skeleton.innerHTML = `
-        <div class="skeleton skeleton-meal-item pulse"></div>
-        <div class="skeleton skeleton-meal-item pulse"></div>
-        <div class="skeleton skeleton-meal-item pulse"></div>
-    `;
-    $skeleton.classList.remove('hidden');
-    $mealList.classList.add('hidden');
-}
-function hideSkeleton() {
-    const $skeleton = document.getElementById('skeleton-meal');
-    $skeleton.innerHTML = '';
-    $skeleton.classList.add('hidden');
-    $mealList.classList.remove('hidden');
 }
 
 /* ── Allergy Section ── */
@@ -452,117 +386,73 @@ function hideSkeleton() {
     word-break: break-word;
 }
 
-/* ── Nav Button Disabled Style ── */
-.nav-btn:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-    pointer-events: none;
+/* ── Bottom Sheet Calendar ── */
+.sheet-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.3);
+    z-index: 100;
 }
+.sheet-overlay.active { display: block; }
 
-/* ── Calendar Page ── */
-.calendar-page {
-    animation: fadeIn 0.25s ease;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.calendar-section {
-    padding: 18px;
-}
-
-.calendar-page-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-    border-bottom: 1.5px solid var(--border);
-    padding-bottom: 12px;
-}
-
-.cal-back-btn {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    font-size: 20px;
-    cursor: pointer;
-    color: var(--text);
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-}
-.cal-back-btn:hover {
-    background: var(--primary-light);
-    border-color: var(--primary);
-    color: var(--primary);
-}
-.cal-back-btn:active {
-    transform: scale(0.92);
-}
-
-.calendar-page-title {
-    font-size: 17px;
-    font-weight: 700;
-    flex-grow: 1;
-    text-align: center;
-    margin-right: 38px; /* Offset the back button to center the title */
-}
-
-.calendar-card {
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    padding: 12px;
-    background: var(--bg);
-    margin-bottom: 16px;
-}
-
-.calendar-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 14px;
-}
-
-.cal-nav-btn {
+.bottom-sheet {
+    position: fixed;
+    left: 0; right: 0;
+    bottom: -100%;
     background: var(--card);
-    border: 1.5px solid var(--border);
-    font-size: 22px;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.2s;
-    line-height: 1;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.12);
+    transition: bottom 0.32s cubic-bezier(0.32,0.72,0,1);
+    z-index: 101;
+    max-height: 75vh;
+    overflow-y: auto;
+    padding-bottom: 24px;
 }
-.cal-nav-btn:hover {
-    background: var(--primary-light);
-    border-color: var(--primary);
-    color: var(--primary);
-}
-.cal-nav-btn:active {
-    transform: scale(0.92);
+.bottom-sheet.open { bottom: 0; }
+
+.sheet-handle {
+    width: 40px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 10px auto 0;
 }
 
-.cal-month-label {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--text);
+.sheet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px 8px;
+    border-bottom: 1px solid var(--border);
+}
+.sheet-month { font-size: 16px; font-weight: 700; flex: 1; text-align: center; }
+.sheet-nav-btn {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: var(--text-sub);
+    padding: 0 6px;
+    transition: color 0.15s;
+}
+.sheet-nav-btn:hover { color: var(--primary); }
+.sheet-close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: var(--text-sub);
+    padding: 4px;
 }
 
 .calendar-weekdays {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     text-align: center;
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 12px;
     color: var(--text-sub);
-    padding: 6px 0 8px;
+    padding: 8px 12px 4px;
 }
 .wd.sun { color: #EF4444; }
 .wd.sat { color: #3B82F6; }
@@ -570,117 +460,36 @@ function hideSkeleton() {
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 3px;
+    gap: 2px;
+    padding: 4px 12px 8px;
 }
-
 .cal-day {
     aspect-ratio: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14.5px;
-    font-weight: 500;
-    border-radius: 9px;
+    font-size: 14px;
+    border-radius: 8px;
     cursor: pointer;
     position: relative;
-    transition: all 0.15s;
-    background: var(--card);
-    border: 1px solid transparent;
+    transition: background 0.15s;
 }
-.cal-day:hover:not(.other):not(.disabled) {
-    background: var(--primary-light);
-    color: var(--primary);
-    border-color: var(--primary);
-}
-.cal-day.other {
-    color: #CBD5E1;
-    opacity: 0.5;
-    pointer-events: none;
-    background: transparent;
-}
-.cal-day.disabled {
-    opacity: 0.25;
-    cursor: not-allowed;
-    pointer-events: none;
-    text-decoration: line-through;
-    background: #F3F4F6;
-    color: #9CA3AF;
-}
-.cal-day.today {
-    background: var(--primary-light);
-    color: var(--primary);
-    font-weight: 700;
-    border: 1.5px solid var(--primary);
-}
-.cal-day.selected {
-    background: var(--primary);
-    color: #fff;
-    font-weight: 700;
-    box-shadow: 0 3px 8px rgba(255,138,0,0.35);
-}
+.cal-day:hover:not(.other):not(.weekend-day) { background: var(--primary-light); }
+.cal-day.other { color: #CBD5E1; pointer-events: none; }
+.cal-day.today { background: var(--primary); color: #fff; font-weight: 700; }
+.cal-day.selected { border: 2px solid var(--primary); font-weight: 700; }
 .cal-day.has-rating::after {
     content: '★';
     font-size: 9px;
     position: absolute;
-    bottom: 2px;
-    right: 3px;
+    bottom: 1px;
+    right: 2px;
     color: var(--star-active);
 }
-.cal-day.selected.has-rating::after {
-    color: #fff;
-}
-.cal-day.weekend-day:not(.other):not(.selected):not(.disabled) {
-    color: #EF4444;
-}
-.cal-day.weekend-day:not(.other):not(.selected):not(.disabled):nth-child(7n) {
-    color: #3B82F6;
-}
-
-.calendar-legend {
-    display: flex;
-    justify-content: center;
-    gap: 16px;
-    padding-top: 4px;
-    font-size: 13px;
-    color: var(--text-sub);
-}
-.legend-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-.legend-dot {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-}
-.legend-dot.today-dot {
-    border: 1.5px solid var(--primary);
-    background: var(--primary-light);
-}
-.legend-dot.selected-dot {
-    background: var(--primary);
-}
-.legend-dot.rating-dot {
-    color: var(--star-active);
-    font-size: 13px;
-    line-height: 1;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: none;
-}
-
-/* ── Meal Section Reason Tag ── */
-.empty .reason {
-    font-size: 12px;
-    color: var(--text-sub);
-    margin-top: 4px;
-    font-weight: 500;
-}
+.cal-day.weekend-day { color: #EF4444; }
+.cal-day.weekend-day:nth-child(7n) { color: #3B82F6; } /* sat */
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-8px); }
+    from { opacity: 0; transform: translateY(-6px); }
     to   { opacity: 1; transform: translateY(0); }
 }
