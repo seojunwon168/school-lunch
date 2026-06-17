@@ -87,6 +87,7 @@ const $reviewDateSub= document.getElementById('review-date-sub');
 
     renderAllergy();
     renderTopDate();
+    switchTab('meal');
     loadMeal();
     renderReviewPage();
     updateLunchStatus();
@@ -204,9 +205,21 @@ function updateLunchStatus() {
    Tab Switching
 ══════════════════════════════════════ */
 function switchTab(tab) {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-    document.getElementById('page-meal').style.display   = tab === 'meal'   ? 'flex' : 'none';
-    document.getElementById('page-review').style.display = tab === 'review' ? 'flex' : 'none';
+    document.querySelectorAll('.tab-btn').forEach(b => {
+        if (b.dataset.tab === tab) {
+            b.classList.add('active');
+        } else {
+            b.classList.remove('active');
+        }
+    });
+    
+    if (tab === 'meal') {
+        document.getElementById('page-meal').style.display = 'block';
+        document.getElementById('page-review').style.display = 'none';
+    } else if (tab === 'review') {
+        document.getElementById('page-meal').style.display = 'none';
+        document.getElementById('page-review').style.display = 'block';
+    }
 }
 
 /* ══════════════════════════════════════
