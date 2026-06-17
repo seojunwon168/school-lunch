@@ -30,8 +30,8 @@ const $chips        = document.getElementById('allergy-chips');
 const $allergyHint  = document.getElementById('allergy-hint');
 const $allergyToggle= document.getElementById('allergy-toggle');
 const $weekendBanner= document.getElementById('weekend-banner');
-const $bottomSheet  = document.getElementById('bottom-sheet');
-const $sheetOverlay = document.getElementById('sheet-overlay');
+const $calDropdown  = document.getElementById('calendar-dropdown');
+const $dropOverlay  = document.getElementById('dropdown-overlay');
 const $sheetMonth   = document.getElementById('sheet-month-label');
 const $sheetGrid    = document.getElementById('bottom-calendar-grid');
 // Review tab
@@ -51,17 +51,17 @@ const $reviewDateSub= document.getElementById('review-date-sub');
     // Date navigation
     document.getElementById('prev-day').onclick    = () => changeDay(-1);
     document.getElementById('next-day').onclick    = () => changeDay(1);
-    document.getElementById('open-calendar').onclick = openSheet;
-    document.getElementById('cal-prev-month').onclick = () => { viewMonth--; if(viewMonth<0){viewMonth=11;viewYear--;} renderBottomCalendar(); };
-    document.getElementById('cal-next-month').onclick = () => { viewMonth++; if(viewMonth>11){viewMonth=0;viewYear++;} renderBottomCalendar(); };
+    document.getElementById('open-calendar').onclick = openCalendar;
+    document.getElementById('cal-prev-month').onclick = () => { viewMonth--; if(viewMonth<0){viewMonth=11;viewYear--;} renderCalendarGrid(); };
+    document.getElementById('cal-next-month').onclick = () => { viewMonth++; if(viewMonth>11){viewMonth=0;viewYear++;} renderCalendarGrid(); };
     document.getElementById('go-today').onclick = () => {
         selectedDate = new Date();
         renderTopDate();
         loadMeal();
         renderReviewPage();
-        closeSheet();
+        closeCalendar();
     };
-    $sheetOverlay.onclick = closeSheet;
+    $dropOverlay.onclick = closeCalendar;
 
     // Tab switching
     document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -254,7 +254,7 @@ function setRating(v) {
     myRatings[key] = v;
     localStorage.setItem('mealRatings', JSON.stringify(myRatings));
     renderStars();
-    renderBottomCalendar();
+    renderCalendarGrid();
 }
 
 function renderStars() {
@@ -339,21 +339,21 @@ function toggleAllergy(id, el) {
 }
 
 /* ══════════════════════════════════════
-   Calendar Popup
+   Calendar Dropdown
 ══════════════════════════════════════ */
-function openSheet() {
+function openCalendar() {
     viewYear  = selectedDate.getFullYear();
     viewMonth = selectedDate.getMonth();
-    $bottomSheet.classList.add('open');
-    $sheetOverlay.classList.add('active');
-    renderBottomCalendar();
+    $calDropdown.style.display = 'block';
+    $dropOverlay.style.display = 'block';
+    renderCalendarGrid();
 }
-function closeSheet() {
-    $bottomSheet.classList.remove('open');
-    $sheetOverlay.classList.remove('active');
+function closeCalendar() {
+    $calDropdown.style.display = 'none';
+    $dropOverlay.style.display = 'none';
 }
 
-function renderBottomCalendar() {
+function renderCalendarGrid() {
     $sheetMonth.textContent = `${viewYear}년 ${viewMonth + 1}월`;
     $sheetGrid.innerHTML = '';
 
@@ -382,7 +382,7 @@ function renderBottomCalendar() {
             renderTopDate();
             loadMeal();
             renderReviewPage();
-            closeSheet();
+            closeCalendar();
         };
         $sheetGrid.appendChild(el);
     }
